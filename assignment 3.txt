@@ -1,0 +1,72 @@
+1.Player's strike rate:
+
+   SELECT player_name, SUM(runs) / COUNT(matches_played) AS strike_rate
+FROM player_stats GROUP BY player_name;
+
+2.Player's avg run-rate:
+
+   SELECT player_name, SUM(runs) / SUM(overs_played) AS avg_run_rate
+FROM player_stats GROUP BY player_name;
+
+3.Player's Top 3 matches according to strike rate:
+ 
+    SELECT player_name, match_date, SUM(runs) / COUNT(matches_played) AS strike_rate
+FROM player_stats GROUP BY player_name, match_date ORDER BY strike_rate DESC
+LIMIT 3;
+   
+4.Couple of teams who have played most matches with each-other:
+
+   SELECT team1, team2, COUNT(*) as matches_played FROM matches GROUP BY team1, team2
+ORDER BY matches_played DESC LIMIT 2;
+
+5.Given two teams as input, success rate of Team1 against Team2:
+
+   WITH team_wins AS (
+    SELECT team1, COUNT(*) as wins
+    FROM matches
+    WHERE team1 = 'Team1' AND team2 = 'Team2' AND team1_score > team2_score
+    GROUP BY team1
+   ),
+  team_matches AS (
+    SELECT team1, COUNT(*) as total_matches
+    FROM matches
+    WHERE (team1 = 'Team1' AND team2 = 'Team2') OR (team1 = 'Team2' AND team2 = 'Team1')
+    GROUP BY team1
+  )
+  SELECT team_wins.wins / team_matches.total_matches as success_rate
+  FROM team_wins
+  JOIN team_matches
+  ON team_wins.team1 = team_matches.team1
+
+
+6.Players who played the most matches in a specific year:
+
+     SELECT player_name, COUNT(DISTINCT match_date) as matches_played
+  FROM player_stats WHERE match_date BETWEEN '2022-01-01' AND '2022-12-31'
+  GROUP BY player_name ORDER BY matches_played DESC LIMIT 5;
+
+
+7.The most successful team in a specific year:
+
+    WITH team_wins AS (
+    SELECT team1, COUNT(*) as wins
+    FROM matches
+    WHERE match_date BETWEEN '2022-01-01' AND '2022-12-31' AND team1_score > team2_score
+    GROUP BY team1
+  ),
+  team_matches AS (
+    SELECT team1, COUNT(*) as total_matches
+    FROM matches
+    WHERE match_date BETWEEN '2022-01-01' AND '2022-12-31'
+    GROUP BY team1
+  )
+  SELECT team_wins.team1 as team, team_wins.wins / team_matches.total_matches as success_rate
+  FROM team_wins
+  JOIN team_matches
+  ON team_wins.team1 = team_matches.team1
+  ORDER BY success
+
+
+
+
+
